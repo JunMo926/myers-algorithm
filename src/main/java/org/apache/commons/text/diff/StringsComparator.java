@@ -33,8 +33,8 @@ public class StringsComparator {
      * @return the edit script resulting from the comparison of the two
      *         sequences
      */
-    public EditScript getScript() {
-        final EditScript script = new EditScript();
+    public EditScript<Character> getScript() {
+        final EditScript<Character> script = new EditScript<Character>();
         buildScript(0, left.length(), 0, right.length(), script);
         return script;
     }
@@ -49,7 +49,7 @@ public class StringsComparator {
      * @param script the edited script
      */
     private void buildScript(final int start1, final int end1, final int start2, final int end2,
-            final EditScript script) {
+            final EditScript<Character> script) {
         final Snake middle = getMiddleSnake(start1, end1, start2, end2);
 
         if (middle == null
@@ -60,15 +60,15 @@ public class StringsComparator {
             int j = start2;
             while (i < end1 || j < end2) {
                 if (i < end1 && j < end2 && left.charAt(i) == right.charAt(j)) {
-                    script.append(new KeepCommand(left.charAt(i)));
+                    script.append(new KeepCommand<Character>(left.charAt(i)));
                     ++i;
                     ++j;
                 } else {
                     if (end1 - start1 > end2 - start2) {
-                        script.append(new DeleteCommand(left.charAt(i)));
+                        script.append(new DeleteCommand<Character>(left.charAt(i)));
                         ++i;
                     } else {
-                        script.append(new InsertCommand(right.charAt(j)));
+                        script.append(new InsertCommand<Character>(right.charAt(j)));
                         ++j;
                     }
                 }
@@ -80,7 +80,7 @@ public class StringsComparator {
                         start2, middle.getStart() - middle.getDiag(),
                         script);
             for (int i = middle.getStart(); i < middle.getEnd(); ++i) {
-                script.append(new KeepCommand(left.charAt(i)));
+                script.append(new KeepCommand<Character>(left.charAt(i)));
             }
             buildScript(middle.getEnd(), end1,
                         middle.getEnd() - middle.getDiag(), end2,
@@ -89,7 +89,7 @@ public class StringsComparator {
     }
     
     private Snake getMiddleSnake(int start1, int end1, int start2, int end2) {
-     // Myers Algorithm
+        // Myers Algorithm
         // Initialisations
         final int m = end1 - start1;
         final int n = end2 - start2;
@@ -236,46 +236,4 @@ public class StringsComparator {
         }
     }
     
-    public static void main(String[] args) {
-        StringsComparator sc = new StringsComparator("O Bruno eh um bom rapaz. Ele eh do Brasil.", "O Bruno foi um bom rapaz. Ele eh do Brasil .");
-        EditScript es = sc.getScript();
-        es.visit(new CommandVisitor() {
-            
-            boolean nlAdd = true;
-            boolean nlRemove = true;
-
-            @Override
-            public void visitInsertCommand(Object object) {
-                if (nlAdd) {
-                    System.out.println();
-                    System.out.print("> ");
-                    nlAdd = false;
-                }
-                System.out.print(object);
-            }
-
-            @Override
-            public void visitKeepCommand(Object object) {
-                if (!nlAdd) {
-                    nlAdd = true;
-                }
-                if (!nlRemove) {
-                    nlRemove = true;
-                    System.out.println();
-                }
-                System.out.print(object);
-            }
-
-            @Override
-            public void visitDeleteCommand(Object object) {
-                if (nlRemove) {
-                    System.out.println();
-                    System.out.print("< ");
-                    nlRemove = false;
-                }
-                System.out.print(object);
-            }
-        });
-    }
-
 }
